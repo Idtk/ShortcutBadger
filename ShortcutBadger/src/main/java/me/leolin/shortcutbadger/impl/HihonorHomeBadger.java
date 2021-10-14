@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,9 @@ public class HihonorHomeBadger implements Badger {
             localBundle.putString("package", context.getPackageName());
             localBundle.putString("class", componentName.getClassName());
             localBundle.putInt("badgenumber", badgeCount);
+            Log.w("HihonorHomeBadger","构建 bundle");
             if (uri != null) {
+                Log.w("HihonorHomeBadger",uri.toString());
                 context.getContentResolver().call(uri, "change_badge", null, localBundle);
             }
         } catch (Exception e) {

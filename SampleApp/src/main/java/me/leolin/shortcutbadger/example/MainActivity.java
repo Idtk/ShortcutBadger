@@ -1,10 +1,14 @@
 package me.leolin.shortcutbadger.example;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,10 +38,11 @@ public class MainActivity extends Activity {
                 } catch (NumberFormatException e) {
                     Toast.makeText(getApplicationContext(), "Error input", Toast.LENGTH_SHORT).show();
                 }
-
+//                executeBadge(MainActivity.this,badgeCount);
                 boolean success = ShortcutBadger.applyCount(MainActivity.this, badgeCount);
 
                 Toast.makeText(getApplicationContext(), "Set count=" + badgeCount + ", success=" + success, Toast.LENGTH_SHORT).show();
+                goHome();
             }
         });
 
@@ -51,11 +56,11 @@ public class MainActivity extends Activity {
                 } catch (NumberFormatException e) {
                     Toast.makeText(getApplicationContext(), "Error input", Toast.LENGTH_SHORT).show();
                 }
-
                 finish();
                 startService(
                     new Intent(MainActivity.this, BadgeIntentService.class).putExtra("badgeCount", badgeCount)
                 );
+                goHome();
             }
         });
 
@@ -66,6 +71,7 @@ public class MainActivity extends Activity {
                 boolean success = ShortcutBadger.removeCount(MainActivity.this);
 
                 Toast.makeText(getApplicationContext(), "success=" + success, Toast.LENGTH_SHORT).show();
+                goHome();
             }
         });
 
@@ -86,4 +92,35 @@ public class MainActivity extends Activity {
     }
 
 
+    public void goHome() {
+        Intent home = new Intent(Intent.ACTION_MAIN);
+        home.addCategory(Intent.CATEGORY_HOME);
+        startActivity(home);
+    }
+
+
+    public void executeBadge(Context context, int badgeCount) {
+        Uri uri = Uri.parse("content://com.hihonor.android.launcher.settings/badge/");
+        if (TextUtils.isEmpty(context.getContentResolver().getType(uri))) {
+            uri = Uri.parse("content://com.huawei.android.launcher.settings/badge/");
+            if (TextUtils.isEmpty(context.getContentResolver().getType(uri))) {
+                uri = null;
+            }
+        }
+        try {
+            Bundle localBundle = new Bundle();
+            localBundle.putString("package", context.getPackageName());
+            localBundle.putString("class", getClass().getName());
+            localBundle.putInt("badgenumber", badgeCount);
+            Log.w("HihonorHomeBadger", context.getPackageName());
+            Log.w("HihonorHomeBadger", getClass().getName());
+            Log.w("HihonorHomeBadger", "构建 bundle");
+            if (uri != null) {
+                Log.w("HihonorHomeBadger", uri.toString());
+                context.getContentResolver().call(uri, "change_badge", (String) null, localBundle);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
